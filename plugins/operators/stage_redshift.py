@@ -13,7 +13,7 @@ class StageToRedshiftOperator(BaseOperator):
         ACCESS_KEY_ID '{}'
         SECRET_ACCESS_KEY '{}'
         COMPUPDATE OFF STATUPDATE OFF
-        REGION {}
+        REGION '{}'
         FORMAT AS JSON '{}'
     """
 
@@ -42,11 +42,11 @@ class StageToRedshiftOperator(BaseOperator):
         credentials = aws_hook.get_credentials()
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
 
-        self.log.info("Clearing data from destination Redshift table")
         redshift.run("DELETE FROM {}".format(self.table))
 
-        self.log.info("Copying data from S3 to Redshift")
+        self.log.info("Loading data from S3 to {} in redshift cluster".format(self.table))
         rendered_key = self.s3_key.format(**context)
+        # path to load table data from json files
         s3_path = "s3://{}/{}".format(self.s3_bucket, rendered_key)
         formatted_sql = StageToRedshiftOperator.copy_sql.format(
             self.table,

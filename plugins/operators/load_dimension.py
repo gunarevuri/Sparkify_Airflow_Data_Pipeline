@@ -6,12 +6,13 @@ from airflow.utils.decorators import apply_defaults
 class LoadDimensionOperator(BaseOperator):
 
     ui_color = '#80BD9E'
-    truncate_stmt = """
-        TRUNCATE TABLE {table}
+    truncate_sql_stmt = """
+        TRUNCATE TABLE {}
     """
+    
     insert_into_stmt = """
-        INSERT INTO {table} 
-        {select_query}
+        INSERT INTO {} 
+        {}
     """
 
     @apply_defaults
@@ -19,10 +20,10 @@ class LoadDimensionOperator(BaseOperator):
                  # Define your operators params (with defaults) here
                  # Example:
                  # conn_id = your-connection-name
-                 redshift_conn_id,
-                 table,
-                 select_query,
-                 truncate_table=False,
+                 redshift_conn_id = "",
+                 table = "",
+                 select_query = "",
+                 truncate_table_sql_stmt = False,
                  *args, **kwargs):
 
         super(LoadDimensionOperator, self).__init__(*args, **kwargs)
@@ -33,16 +34,15 @@ class LoadDimensionOperator(BaseOperator):
         self.truncate_table = truncate_table
 
     def execute(self, context):
-        redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+        # connect to redshift cluster to run sql statements
 
-        if self.truncate_table:
-            self.log.info("Will truncate table before inserting new data...")
-            redshift.run(LoadDimensionOperator.truncate_stmt.format(
-                table=self.table
+        redshift = PostgresHook(postgres_conn_id = self.redshift_conn_id)
+
+        if self.truncate_table :
+            self.log.info("Will truncate table {} before inserting new data".format(self.table))
+            redshift.run(LoadDimensionOperator.truncate_sql_stmt.format(
+                self.table
             ))
 
-        self.log.info("Inserting dimension table data...")
-        redshift.run(LoadDimensionOperator.insert_into_stmt.format(
-            table=self.table,
-            select_query=self.select_query
-        ))
+        self.log.info("Inserting dimension table data to {}".format(self.table))
+        redshift.run(LoadDimensionOperator.insert_into_stmt.format( self.table, self.select_query ))
