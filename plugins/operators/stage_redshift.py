@@ -13,6 +13,7 @@ class StageToRedshiftOperator(BaseOperator):
         ACCESS_KEY_ID '{}'
         SECRET_ACCESS_KEY '{}'
         COMPUPDATE OFF STATUPDATE OFF
+        REGION {}
         FORMAT AS JSON '{}'
     """
 
@@ -24,6 +25,7 @@ class StageToRedshiftOperator(BaseOperator):
                  s3_bucket="",
                  s3_key="",
                  json_path="auto",
+                 region = "us-west-2",
                  *args, **kwargs):
 
         super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
@@ -33,6 +35,7 @@ class StageToRedshiftOperator(BaseOperator):
         self.s3_key = s3_key
         self.aws_credentials_id = aws_credentials_id
         self.json_path = json_path
+        self.region = region
 
     def execute(self, context):
         aws_hook = AwsHook(self.aws_credentials_id)
@@ -50,6 +53,7 @@ class StageToRedshiftOperator(BaseOperator):
             s3_path,
             credentials.access_key,
             credentials.secret_key,
+            self.region,
             self.json_path
         )
         redshift.run(formatted_sql)
