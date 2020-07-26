@@ -20,7 +20,7 @@ def create_tables(cur, conn):
 
 
 def main():
-	values = ('airflowcluster.cen7uusy9typ.us-west-2.redshift.amazonaws.com', 'airflowdb', 'airflow_user','Passw0rd', 5439)
+	values = ('airflowcluster.cen7uusy9typ.us-west-2.redshift.amazonaws.com', 'your cluster schema name', 'your master user name in cluster','your password', 5439)
 	conn = psycopg2.connect("host={} dbname={} user={} password={} port={}".format(*values))
 	cur = conn.cursor()
 
